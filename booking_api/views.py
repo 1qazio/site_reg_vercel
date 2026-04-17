@@ -1,4 +1,6 @@
-from django.http import HttpResponse, JsonResponse
+from pathlib import Path
+
+from django.http import FileResponse, HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from .services import (
@@ -9,6 +11,9 @@ from .services import (
     get_state_payload,
     register_user,
 )
+
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 def cors_json(payload, status=200):
@@ -25,6 +30,14 @@ def options_response():
     response["Access-Control-Allow-Methods"] = "GET,POST,DELETE,OPTIONS"
     response["Access-Control-Allow-Headers"] = "Content-Type"
     return response
+
+
+def index_view(request):
+    if request.method != "GET":
+        return cors_json({"error": "Метод не поддерживается"}, status=405)
+
+    index_path = BASE_DIR / "index.html"
+    return FileResponse(index_path.open("rb"), content_type="text/html; charset=utf-8")
 
 
 @csrf_exempt
