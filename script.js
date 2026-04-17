@@ -436,6 +436,10 @@
   }
 
   function fillModalFields() {
+    const previousRoom = roomSelect.value || state.modal.room;
+    const previousStartTime = startTimeSelect.value || String(DAY_START);
+    const previousDuration = durationSelect.value || String(DURATIONS[0]);
+
     roomSelect.innerHTML = state.rooms.map((room) => `<option value="${room}">${room}</option>`).join("");
 
     const startOptions = buildStartTimes()
@@ -451,7 +455,13 @@
       state.modal.room = state.rooms[0] || FALLBACK_ROOMS[0];
     }
 
-    roomSelect.value = state.modal.room;
+    roomSelect.value = state.rooms.includes(previousRoom) ? previousRoom : state.modal.room;
+    startTimeSelect.value = buildStartTimes().includes(Number(previousStartTime))
+      ? previousStartTime
+      : String(DAY_START);
+    durationSelect.value = DURATIONS.includes(Number(previousDuration))
+      ? previousDuration
+      : String(DURATIONS[0]);
   }
 
   function openBookingModal({ date, room, lockRoom }) {
