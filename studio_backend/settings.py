@@ -20,7 +20,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "studio_backend.urls"
-WSGI_APPLICATION = "studio_backend.wsgi.application"
+WSGI_APPLICATION = "studio_backend.wsgi.app"
 
 TEMPLATES = []
 
@@ -62,4 +62,3 @@ USE_I18N = True
 USE_TZ = True
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
