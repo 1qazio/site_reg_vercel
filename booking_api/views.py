@@ -40,6 +40,29 @@ def index_view(request):
     return FileResponse(index_path.open("rb"), content_type="text/html; charset=utf-8")
 
 
+def static_file_view(request, filename, content_type):
+    if request.method != "GET":
+        return cors_json({"error": "Метод не поддерживается"}, status=405)
+
+    file_path = BASE_DIR / filename
+    if not file_path.exists():
+        return HttpResponse("Not Found", status=404)
+
+    return FileResponse(file_path.open("rb"), content_type=content_type)
+
+
+def style_view(request):
+    return static_file_view(request, "style.css", "text/css; charset=utf-8")
+
+
+def script_view(request):
+    return static_file_view(request, "script.js", "application/javascript; charset=utf-8")
+
+
+def favicon_view(request):
+    return static_file_view(request, "favicon.svg", "image/svg+xml")
+
+
 @csrf_exempt
 def state_view(request):
     if request.method == "OPTIONS":
