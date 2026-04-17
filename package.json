@@ -1,0 +1,8 @@
+{
+  "name": "studiobook-django-vercel",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "check": "python -m compileall api booking_api studio_backend manage.py"
+  }
+}

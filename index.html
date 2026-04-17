@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>СтудияАлина — Недельное расписание</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            studio: {
+              900: "#090b10",
+              800: "#101420",
+              700: "#151c2c",
+              600: "#1f2b44",
+              accent: "#4cc9f0",
+              mint: "#7ae582",
+              danger: "#ef476f"
+            }
+          },
+          boxShadow: {
+            glow: "0 0 0 1px rgba(76,201,240,0.3), 0 10px 40px rgba(0,0,0,0.45)"
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body class="bg-studio-900 text-slate-100 min-h-screen antialiased">
+  <div class="background-orbs" aria-hidden="true">
+    <span class="orb orb-1"></span>
+    <span class="orb orb-2"></span>
+  </div>
+
+  <div id="app" class="relative z-10">
+    <header class="sticky top-0 z-30 border-b border-slate-800/70 bg-studio-900/85 backdrop-blur">
+      <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-studio-700 shadow-glow">
+              <span class="text-lg font-bold text-studio-accent">СА</span>
+            </div>
+            <div>
+              <h1 class="text-xl font-semibold tracking-wide">СтудияАлина</h1>
+              <p class="text-xs text-slate-400">Система бронирования кабинетов</p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <div id="syncStatus" class="rounded-lg border border-slate-700 bg-studio-800 px-3 py-2 text-sm text-slate-300">
+              Сервер: подключение...
+            </div>
+            <button id="openBookingFromHeaderBtn" class="rounded-lg border border-studio-accent/50 bg-studio-accent/15 px-3 py-2 text-sm text-studio-accent transition hover:bg-studio-accent/25">
+              Забронировать на сегодня
+            </button>
+            <button id="toggleThemeBtn" class="rounded-lg border border-slate-700 bg-studio-800 px-3 py-2 text-sm text-slate-100 transition hover:border-studio-accent hover:text-white">
+              Тема: Темная
+            </button>
+            <button id="changeUserBtn" class="rounded-lg border border-slate-700 bg-studio-800 px-3 py-2 text-sm text-slate-100 transition hover:border-studio-accent hover:text-white">
+              Пользователь: <span id="headerUserName" class="font-semibold text-studio-accent">—</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+      <section class="rounded-2xl border border-slate-800 bg-studio-800/60 p-4 sm:p-5">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h2 class="text-lg font-semibold">Расписание на неделю</h2>
+            <p id="weekRangeLabel" class="mt-1 text-sm text-slate-400">—</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="prevWeekBtn" class="week-nav-btn">← Предыдущая неделя</button>
+            <button id="currentWeekBtn" class="week-nav-btn is-active">Текущая неделя</button>
+            <button id="nextWeekBtn" class="week-nav-btn">Следующая неделя →</button>
+          </div>
+        </div>
+
+        <div id="weekDaysStrip" class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7"></div>
+      </section>
+
+      <section class="rounded-2xl border border-slate-800 bg-studio-800/60 p-4 sm:p-5">
+        <div class="weekly-wrap">
+          <div id="weeklyGrid" class="weekly-grid"></div>
+        </div>
+      </section>
+
+      <section class="rounded-2xl border border-slate-800 bg-studio-800/60 p-4 sm:p-5">
+        <div class="mb-4 flex items-center justify-between gap-3">
+          <h2 class="text-lg font-semibold">Мои бронирования</h2>
+          <span id="myBookingsCount" class="rounded-full border border-slate-700 bg-studio-700 px-3 py-1 text-xs text-slate-300">0</span>
+        </div>
+        <div id="myBookingsContainer"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="bookingModal" class="modal-overlay hidden" aria-hidden="true">
+    <div class="modal-card">
+      <div class="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <h3 class="text-xl font-semibold">Новая бронь</h3>
+          <p class="text-sm text-slate-400">Дата: <span id="modalDateText" class="text-slate-200"></span></p>
+        </div>
+        <button id="closeBookingModalBtn" class="rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 transition hover:border-slate-500 hover:text-white">
+          Закрыть
+        </button>
+      </div>
+
+      <form id="bookingForm" class="space-y-4">
+        <div id="lockedRoomBlock" class="rounded-xl border border-slate-700 bg-studio-700/50 px-3 py-2 text-sm text-slate-300">
+          Кабинет: <span id="modalRoomText" class="font-semibold text-slate-100">—</span>
+        </div>
+
+        <div id="roomSelectBlock">
+          <label for="roomSelect" class="label">Кабинет</label>
+          <select id="roomSelect" class="field"></select>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label for="startTimeSelect" class="label">Время начала</label>
+            <select id="startTimeSelect" class="field"></select>
+          </div>
+          <div>
+            <label for="durationSelect" class="label">Длительность</label>
+            <select id="durationSelect" class="field">
+              <option value="30">30 мин</option>
+              <option value="60">1 час</option>
+              <option value="90">1.5 часа</option>
+              <option value="120">2 часа</option>
+              <option value="180">3 часа</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-slate-700 bg-studio-700/50 px-3 py-2 text-sm text-slate-300">
+          Окончание: <span id="endTimePreview" class="font-semibold text-slate-100">—</span>
+        </div>
+
+        <p id="bookingError" class="min-h-[1.25rem] text-sm font-medium text-studio-danger"></p>
+
+        <button type="submit" class="w-full rounded-xl bg-studio-mint px-4 py-3 font-semibold text-slate-900 transition hover:brightness-110">
+          Подтвердить бронирование
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div id="userModal" class="modal-overlay hidden" aria-hidden="true">
+    <div class="modal-card max-w-md">
+      <h3 class="text-xl font-semibold">Ваше имя</h3>
+      <p class="mt-1 text-sm text-slate-400">Имя сохраняется на сервере и будет видно на других устройствах.</p>
+      <form id="userForm" class="mt-4 space-y-4">
+        <input id="userNameInput" type="text" maxlength="30" class="field" placeholder="Например: Николя" />
+        <p id="userFormError" class="min-h-[1.25rem] text-sm font-medium text-studio-danger"></p>
+        <div id="serverHelpText" class="rounded-xl border border-slate-700 bg-studio-700/40 px-3 py-2 text-sm text-slate-300">
+          Для входа сайт должен быть открыт через адрес сайта, а не просто локальным файлом.
+        </div>
+        <button type="submit" class="w-full rounded-xl bg-studio-accent px-4 py-3 font-semibold text-slate-900 transition hover:brightness-110">
+          Сохранить
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div id="toastContainer" class="pointer-events-none fixed right-4 top-4 z-50 space-y-2"></div>
+
+  <script src="./script.js"></script>
+</body>
+</html>
