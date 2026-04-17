@@ -57,7 +57,7 @@ if database_url:
     }
 
 LANGUAGE_CODE = "ru-ru"
-TIME_ZONE = os.getenv("TIME_ZONE", "Europe/Moscow")
+TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
