@@ -8,9 +8,9 @@
   };
 
   const API_ROUTES = {
-    STATE: "/api/state",
-    REGISTER: "/api/register",
-    BOOKINGS: "/api/bookings"
+    STATE: "/state",
+    REGISTER: "/register",
+    BOOKINGS: "/bookings"
   };
 
   const DAY_START = 9 * 60;
